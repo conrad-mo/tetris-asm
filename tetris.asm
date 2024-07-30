@@ -81,7 +81,7 @@ main:
 checker_gen_loop:
 	li $t8, 512
 	bgt $t7, $t8, checker_gen_end
-	li $t9, 32
+	li $t9, 16
 	rem $t2, $t7, $t9
 	beq $t2, 0, new_row
 	beq $t3, 0, dark_first_checker_gen
