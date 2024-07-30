@@ -139,7 +139,8 @@ bot_wall_gen_loop:
 	j bot_wall_gen_loop
 
 bot_wall_gen_end:
-    	#lw $t0, ADDR_DSPL
+    	lw $t0, ADDR_DSPL
+    	lw $t2, ADDR_KBRD
     	#li $t7, 4
     	#li $t9, 0
     	#j checker_gen_loop
@@ -156,4 +157,33 @@ game_loop:
     #5. Go back to 1
     #lw $t0, ADDR_DSPL
     #sw $t3, 120($t0)
-    b game_loop
+    	lw $t3, 0($t2)
+    	beq $t3, 1, keyboard_input
+    	b game_loop
+
+keyboard_input:
+    	lw $a0, 4($t0)                  # Load second word from keyboard
+    	beq $a0, 0x77, respond_to_W     # Check if the key q was pressed
+    	beq $a0, 0x61, respond_to_A
+    	beq $a0, 0x73, respond_to_S
+    	beq $a0, 0x64, respond_to_D
+    	li $v0, 1                       # ask system to print $a0
+    	syscall
+
+    	b game_loop
+
+respond_to_W:
+	li $v0, 10                      # Quit gracefully
+	syscall
+
+respond_to_A:
+	li $v0, 10                      # Quit gracefully
+	syscall
+	
+respond_to_S:
+	li $v0, 10                      # Quit gracefully
+	syscall
+	
+respond_to_D:
+	li $v0, 10                      # Quit gracefully
+	syscall

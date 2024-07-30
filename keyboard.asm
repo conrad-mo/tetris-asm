@@ -12,8 +12,8 @@ ADDR_KBRD:
 	.globl main
 
 main:
-	li 		$v0, 32
-	li 		$a0, 1
+	li $v0, 32
+	li $a0, 1
 	syscall
 
     lw $t0, ADDR_KBRD               # $t0 = base address for keyboard
