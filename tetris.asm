@@ -63,19 +63,53 @@ ADDR_KBRD:
 	# Run the Tetris game.
 main:
     	# Initialize the game
-    	li $t1, 0xff0000        # $t1 = red
-    	li $t2, 0x00ff00        # $t2 = green
-    	li $t3, 0x0000ff        # $t3 = blue
+    	#li $t1, 0xff0000        # $t1 = red
+    	#li $t2, 0x00ff00        # $t2 = green
+    	li $t1, 0x0000ff        # $t3 = blue
     	li $t4, 0x808080	# $t4 = grey
     	li $t5, 0xC0C0C0	# $t5 = light grey
     	li $t6, 0x404040	# $t6 = dark grey
     	lw $t0, ADDR_DSPL
     
-    	li $t7, 0 
-    	j wall_gen_loop
+    	li $t7, 0
+    	li $t3, 0
+    	j checker_gen_loop
     	
     	li $v0, 10
     	syscall
+
+checker_gen_loop:
+	li $t8, 512
+	bgt $t7, $t8, checker_gen_end
+	li $t9, 32
+	rem $t2, $t7, $t9
+	beq $t2, 0, new_row
+	beq $t3, 0, dark_first_checker_gen
+	j light_first_checker_gen
+	
+new_row:
+	xor $t3, $t3, 1
+	beq $t3, 0, dark_first_checker_gen
+	j light_first_checker_gen
+
+dark_first_checker_gen:
+	sw $t5, 0($t0)
+	sw $t6, 4($t0)
+	addi $t7, $t7, 1
+	addi $t0, $t0, 8
+	j checker_gen_loop
+
+light_first_checker_gen:
+	sw $t6, 0($t0)
+	sw $t5, 4($t0)
+	addi $t7, $t7, 1
+	addi $t0, $t0, 8
+	j checker_gen_loop
+
+checker_gen_end:
+	lw $t0, ADDR_DSPL
+	li $t7, 0
+	#j wall_gen_loop
 
 wall_gen_loop:
 	li $t8, 32
@@ -105,27 +139,11 @@ bot_wall_gen_loop:
 	j bot_wall_gen_loop
 
 bot_wall_gen_end:
-    	lw $t0, ADDR_DSPL
-    	li $t7, 4
-    	li $t9, 0
-    	j checker_gen_loop
-    	#j game_loop
-    
-checker_gen_loop:
-	li $t8, 124
-	bge $t0, 4096, checker_gen_end
-	beq $t9, 0 dark_first_checker_gen
-	beq $t9, 1 light_first_checker_gen
-	addi $t0, $t0, 128
-
-dark_first_checker_gen:
-	sw $t6, 0($t0)
-
-light_first_checker_gen:
-	s
-
-checker_gen_end:
-	j game_loop
+    	#lw $t0, ADDR_DSPL
+    	#li $t7, 4
+    	#li $t9, 0
+    	#j checker_gen_loop
+    	j game_loop
 
 game_loop:
 	# 1a. Check if key has been pressed
