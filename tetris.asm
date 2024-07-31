@@ -49,11 +49,13 @@ ADDR_DSPL:
 # The address of the keyboard. Don't forget to connect it!
 ADDR_KBRD:
     .word 0xffff0000
+debug: .asciiz "Hello, MIPS World!\n"
+debugtwo: .asciiz "??? done this\n"
 
 ##############################################################################
 # Mutable Data
 ##############################################################################
-
+location: .word 56, 184, 312, 440
 ##############################################################################
 # Code
 ##############################################################################
@@ -65,18 +67,26 @@ main:
     	# Initialize the game
     	#li $t1, 0xff0000        # $t1 = red
     	#li $t2, 0x00ff00        # $t2 = green
-    	li $t1, 0x0000ff        # $t3 = blue
+    	li $t1, 0x0000ff        # $t1 = blue
     	li $t4, 0x808080	# $t4 = grey
-    	li $t5, 0xC0C0C0	# $t5 = light grey
-    	li $t6, 0x404040	# $t6 = dark grey
+    	li $t5, 0xC0C0C0	# $t5 = dark grey
+    	li $t6, 0x404040	# $t6 = light grey
     	lw $t0, ADDR_DSPL
+    	addi $sp, $sp, -16
+    	addi $t2, $zero, 60
+    	sw $t2, 0($sp)
+    	addi $t2, $zero, 188
+    	sw $t2, 4($sp)
+    	addi $t2, $zero, 316
+    	sw $t2, 8($sp)
+    	addi $t2, $zero, 444
+    	sw $t2, 12($sp)
     
     	li $t7, 0
     	li $t3, 0
-    	j checker_gen_loop
+    	jal checker_gen_loop
     	
-    	li $v0, 10
-    	syscall
+    	j game_loop
 
 checker_gen_loop:
 	li $t8, 512
@@ -138,13 +148,51 @@ bot_wall_gen_loop:
 	
 	j bot_wall_gen_loop
 
+spawn_block:
+	move $a0, $t0  # Move the value of $t0 into $a0
+    	li $v0, 1      # Syscall code for print integer
+    	syscall
+	lw $t0, ADDR_DSPL
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	addi $sp, $sp, 16
+	
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	
+	addi $sp, $sp, -16
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	add $s0, $zero, $zero
+	add $s1, $zero, $zero
+	add $s2, $zero, $zero
+	add $s3, $zero, $zero
+	j game_loop
+
 bot_wall_gen_end:
     	lw $t0, ADDR_DSPL
     	lw $t2, ADDR_KBRD
+    	j spawn_block
     	#li $t7, 4
     	#li $t9, 0
     	#j checker_gen_loop
-    	j game_loop
+    	#j game_loop
 
 game_loop:
 	# 1a. Check if key has been pressed
@@ -155,18 +203,19 @@ game_loop:
 	# 4. Sleep
 
     #5. Go back to 1
-    #lw $t0, ADDR_DSPL
-    #sw $t3, 120($t0)
+    	lw $t0, ADDR_DSPL
+    	lw $t2, ADDR_KBRD
     	lw $t3, 0($t2)
     	beq $t3, 1, keyboard_input
     	b game_loop
 
 keyboard_input:
-    	lw $a0, 4($t0)                  # Load second word from keyboard
-    	beq $a0, 0x77, respond_to_W     # Check if the key q was pressed
+    	lw $a0, 4($t2)                  # Load second word from keyboard
+    	beq $a0, 0x77, respond_to_W
     	beq $a0, 0x61, respond_to_A
     	beq $a0, 0x73, respond_to_S
     	beq $a0, 0x64, respond_to_D
+    	beq $a0, 0x71, respond_to_Q
     	li $v0, 1                       # ask system to print $a0
     	syscall
 
@@ -185,5 +234,114 @@ respond_to_S:
 	syscall
 	
 respond_to_D:
+	j redraw_block
+
+respond_to_Q:
 	li $v0, 10                      # Quit gracefully
 	syscall
+	
+redraw_block:
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	addi $sp, $sp, 16
+	
+	addi $s0, $s0, 4
+	addi $s1, $s1, 4
+	addi $s2, $s2, 4
+	addi $s3, $s3, 4
+	
+	lw $t0, ADDR_DSPL
+	li $t7, 0
+    	li $t3, 0
+	jal checker_clear_loop
+	
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	
+	addi $sp, $sp, -16
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	b game_loop
+
+checker_clear_loop:
+	la $a0, debug
+	li $v0, 4
+	syscall
+	li $t8, 512
+	bgt $t7, $t8, checker_clear_end
+	li $t9, 16
+	rem $t2, $t7, $t9
+	beq $t2, 0, new_row_clear
+	beq $t3, 0, dark_first_checker_gen_clear
+	j light_first_checker_gen_clear
+	
+new_row_clear:
+	xor $t3, $t3, 1
+	beq $t3, 0, dark_first_checker_gen
+	j light_first_checker_gen
+
+dark_first_checker_gen_clear:
+	sw $t5, 0($t0)
+	sw $t6, 4($t0)
+	addi $t7, $t7, 1
+	addi $t0, $t0, 8
+	j checker_clear_loop
+
+light_first_checker_gen_clear:
+	sw $t6, 0($t0)
+	sw $t5, 4($t0)
+	addi $t7, $t7, 1
+	addi $t0, $t0, 8
+	j checker_clear_loop
+
+checker_clear_end:
+	lw $t0, ADDR_DSPL
+	li $t7, 0
+	j wall_clear_loop
+
+wall_clear_loop:
+	li $t8, 32
+	bge $t7, $t8, wall_clear_end
+	
+	sw $t4, 0($t0)
+	sw $t4, 124($t0)
+	addi $t0, $t0, 128
+	addi $t7, $t7, 1
+	
+	j wall_clear_loop
+	
+wall_clear_end:
+	lw $t0, ADDR_DSPL
+	addi $t0, $t0, 3968
+	li $t7, 0
+	j bot_wall_clear_loop
+
+bot_wall_clear_loop:
+	li $t8, 32
+	bge $t7, $t8, bot_wall_clear_end
+	
+	sw $t4, 0($t0)
+	addi $t0, $t0, 4
+	addi $t7, $t7, 1
+	
+	j bot_wall_clear_loop
+
+bot_wall_clear_end:
+    	lw $t0, ADDR_DSPL
+    	lw $t2, ADDR_KBRD
+    	jr $ra
