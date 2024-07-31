@@ -69,19 +69,10 @@ main:
     	#li $t2, 0x00ff00        # $t2 = green
     	li $t1, 0x0000ff        # $t1 = blue
     	li $t4, 0x808080	# $t4 = grey
-    	li $t5, 0xC0C0C0	# $t5 = dark grey
-    	li $t6, 0x404040	# $t6 = light grey
+    	li $t5, 0xC0C0C0	# $t5 = light grey
+    	li $t6, 0x404040	# $t6 = dark grey
     	lw $t0, ADDR_DSPL
-    	addi $sp, $sp, -16
-    	addi $t2, $zero, 60
-    	sw $t2, 0($sp)
-    	addi $t2, $zero, 188
-    	sw $t2, 4($sp)
-    	addi $t2, $zero, 316
-    	sw $t2, 8($sp)
-    	addi $t2, $zero, 444
-    	sw $t2, 12($sp)
-    
+	
     	li $t7, 0
     	li $t3, 0
     	jal checker_gen_loop
@@ -103,15 +94,15 @@ new_row:
 	j light_first_checker_gen
 
 dark_first_checker_gen:
-	sw $t5, 0($t0)
-	sw $t6, 4($t0)
+	sw $t6, 0($t0)
+	sw $t5, 4($t0)
 	addi $t7, $t7, 1
 	addi $t0, $t0, 8
 	j checker_gen_loop
 
 light_first_checker_gen:
-	sw $t6, 0($t0)
-	sw $t5, 4($t0)
+	sw $t5, 0($t0)
+	sw $t6, 4($t0)
 	addi $t7, $t7, 1
 	addi $t0, $t0, 8
 	j checker_gen_loop
@@ -188,6 +179,37 @@ spawn_block:
 bot_wall_gen_end:
     	lw $t0, ADDR_DSPL
     	lw $t2, ADDR_KBRD
+    	lw $t2, 60($t0)
+    	#sw $t6, 0($t0)
+    	#beq $t2, $t6, collide
+    	
+    	
+    	addi $sp, $sp, -32
+    	addi $t0, $t0, 60
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 188
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 316
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 444
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+    	
+    	addi $t2, $zero, 60
+    	sw $t2, 0($sp)
+    	addi $t2, $zero, 188
+    	sw $t2, 4($sp)
+    	addi $t2, $zero, 316
+    	sw $t2, 8($sp)
+    	addi $t2, $zero, 444
+    	sw $t2, 12($sp)
     	j spawn_block
     	#li $t7, 4
     	#li $t9, 0
@@ -226,8 +248,104 @@ respond_to_W:
 	syscall
 
 respond_to_A:
-	li $v0, 10                      # Quit gracefully
-	syscall
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	lw $s4, 16($sp)
+	lw $s5, 20($sp)
+	lw $s6, 24($sp)
+	lw $s7, 28($sp)
+	addi $sp, $sp, 32
+	
+	addi $s0, $s0, -4
+	addi $s1, $s1, -4
+	addi $s2, $s2, -4
+	addi $s3, $s3, -4
+	
+	#Check collision 
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_left
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_left
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_left
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_left
+	
+	addi $s0, $s0, 4
+	addi $s1, $s1, 4
+	addi $s2, $s2, 4
+	addi $s3, $s3, 4
+	
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+	
+	addi $s0, $s0, -4
+	addi $s1, $s1, -4
+	addi $s2, $s2, -4
+	addi $s3, $s3, -4
+	
+	#Save new colours
+	addi $sp, $sp, -32
+	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+	
+	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	
+	#Save coordinates
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	b game_loop
 	
 respond_to_S:
 	li $v0, 10                      # Quit gracefully
@@ -245,32 +363,94 @@ redraw_block:
 	lw $s1, 4($sp)
 	lw $s2, 8($sp)
 	lw $s3, 12($sp)
-	addi $sp, $sp, 16
+	lw $s4, 16($sp)
+	lw $s5, 20($sp)
+	lw $s6, 24($sp)
+	lw $s7, 28($sp)
+	addi $sp, $sp, 32
 	
 	addi $s0, $s0, 4
 	addi $s1, $s1, 4
 	addi $s2, $s2, 4
 	addi $s3, $s3, 4
 	
+	#Check collision 
 	lw $t0, ADDR_DSPL
-	li $t7, 0
-    	li $t3, 0
-	jal checker_clear_loop
-	
+	add $t0, $t0, $s3
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_right
 	lw $t0, ADDR_DSPL
-	add $t0, $t0, $s0
-	sw $t1, 0($t0)
+	add $t0, $t0, $s2
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_right
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s1
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_right
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_right
+	
+	addi $s0, $s0, -4
+	addi $s1, $s1, -4
+	addi $s2, $s2, -4
+	addi $s3, $s3, -4
+	
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+	
+	addi $s0, $s0, 4
+	addi $s1, $s1, 4
+	addi $s2, $s2, 4
+	addi $s3, $s3, 4
+	
+	#Save new colours
+	addi $sp, $sp, -32
+	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+	
+	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
 	sw $t1, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $t1, 0($t0)
 	lw $t0, ADDR_DSPL
-	add $t0, $t0, $s3
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
 	sw $t1, 0($t0)
 	
-	addi $sp, $sp, -16
+	#Save coordinates
 	sw $s3, 0($sp)
 	sw $s2, 4($sp)
 	sw $s1, 8($sp)
@@ -278,70 +458,106 @@ redraw_block:
 	
 	b game_loop
 
-checker_clear_loop:
-	la $a0, debug
-	li $v0, 4
-	syscall
-	li $t8, 512
-	bgt $t7, $t8, checker_clear_end
-	li $t9, 16
-	rem $t2, $t7, $t9
-	beq $t2, 0, new_row_clear
-	beq $t3, 0, dark_first_checker_gen_clear
-	j light_first_checker_gen_clear
+collide_right:
+	addi $s0, $s0, -4
+	addi $s1, $s1, -4
+	addi $s2, $s2, -4
+	addi $s3, $s3, -4
 	
-new_row_clear:
-	xor $t3, $t3, 1
-	beq $t3, 0, dark_first_checker_gen
-	j light_first_checker_gen
-
-dark_first_checker_gen_clear:
-	sw $t5, 0($t0)
-	sw $t6, 4($t0)
-	addi $t7, $t7, 1
-	addi $t0, $t0, 8
-	j checker_clear_loop
-
-light_first_checker_gen_clear:
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
 	sw $t6, 0($t0)
-	sw $t5, 4($t0)
-	addi $t7, $t7, 1
-	addi $t0, $t0, 8
-	j checker_clear_loop
-
-checker_clear_end:
 	lw $t0, ADDR_DSPL
-	li $t7, 0
-	j wall_clear_loop
-
-wall_clear_loop:
-	li $t8, 32
-	bge $t7, $t8, wall_clear_end
-	
-	sw $t4, 0($t0)
-	sw $t4, 124($t0)
-	addi $t0, $t0, 128
-	addi $t7, $t7, 1
-	
-	j wall_clear_loop
-	
-wall_clear_end:
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
 	lw $t0, ADDR_DSPL
-	addi $t0, $t0, 3968
-	li $t7, 0
-	j bot_wall_clear_loop
-
-bot_wall_clear_loop:
-	li $t8, 32
-	bge $t7, $t8, bot_wall_clear_end
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+    	
+    	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+    	
+    	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+    	b game_loop
+    	
+collide_left:
+	addi $s0, $s0, 4
+	addi $s1, $s1, 4
+	addi $s2, $s2, 4
+	addi $s3, $s3, 4
 	
-	sw $t4, 0($t0)
-	addi $t0, $t0, 4
-	addi $t7, $t7, 1
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
 	
-	j bot_wall_clear_loop
-
-bot_wall_clear_end:
+	#Save colours
+	addi $sp, $sp, -32
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
     	lw $t0, ADDR_DSPL
-    	lw $t2, ADDR_KBRD
-    	jr $ra
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	#beq $t2, $t5, thing
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+    	
+    	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+    	
+    	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+    	b game_loop
+
+thing:
+	li $v0, 10                      # Quit gracefully
+	syscall
