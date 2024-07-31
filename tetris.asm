@@ -348,8 +348,76 @@ respond_to_A:
 	b game_loop
 	
 respond_to_S:
-	li $v0, 10                      # Quit gracefully
-	syscall
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	lw $s4, 16($sp)
+	lw $s5, 20($sp)
+	lw $s6, 24($sp)
+	lw $s7, 28($sp)
+	addi $sp, $sp, 32
+	
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+	
+	addi $s0, $s0, 128
+	addi $s1, $s1, 128
+	addi $s2, $s2, 128
+	addi $s3, $s3, 128
+	
+	#Save new colours
+	addi $sp, $sp, -32
+	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+	
+	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	
+	#Save coordinates
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	b game_loop
 	
 respond_to_D:
 	j redraw_block
