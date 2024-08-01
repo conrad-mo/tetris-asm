@@ -140,9 +140,38 @@ bot_wall_gen_loop:
 	j bot_wall_gen_loop
 
 spawn_block:
-	move $a0, $t0  # Move the value of $t0 into $a0
-    	li $v0, 1      # Syscall code for print integer
-    	syscall
+	#Clear stack
+	addi $sp, $sp, 36
+	#Add stuff to stack
+	addi $sp, $sp, -36
+    	add $t2, $zero, $zero
+    	sw $t2, 32($sp)
+    	addi $t0, $t0, 60
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 188
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 316
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	addi $t0, $t0, 444
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+    	
+    	addi $t2, $zero, 60
+    	sw $t2, 0($sp)
+    	addi $t2, $zero, 188
+    	sw $t2, 4($sp)
+    	addi $t2, $zero, 316
+    	sw $t2, 8($sp)
+    	addi $t2, $zero, 444
+    	sw $t2, 12($sp)
+	
 	lw $t0, ADDR_DSPL
 	lw $s0, 0($sp)
 	lw $s1, 4($sp)
@@ -179,35 +208,6 @@ spawn_block:
 bot_wall_gen_end:
     	lw $t0, ADDR_DSPL
     	
-    	
-    	addi $sp, $sp, -36
-    	add $t2, $zero, $zero
-    	sw $t2, 32($sp)
-    	addi $t0, $t0, 60
-    	lw $t2, 0($t0)
-    	sw $t2, 16($sp)
-    	lw $t0, ADDR_DSPL
-    	addi $t0, $t0, 188
-    	lw $t2, 0($t0)
-    	sw $t2, 20($sp)
-    	lw $t0, ADDR_DSPL
-    	addi $t0, $t0, 316
-    	lw $t2, 0($t0)
-    	sw $t2, 24($sp)
-    	lw $t0, ADDR_DSPL
-    	addi $t0, $t0, 444
-    	lw $t2, 0($t0)
-    	sw $t2, 28($sp)
-    	lw $t0, ADDR_DSPL
-    	
-    	addi $t2, $zero, 60
-    	sw $t2, 0($sp)
-    	addi $t2, $zero, 188
-    	sw $t2, 4($sp)
-    	addi $t2, $zero, 316
-    	sw $t2, 8($sp)
-    	addi $t2, $zero, 444
-    	sw $t2, 12($sp)
     	j spawn_block
     	#li $t7, 4
     	#li $t9, 0
@@ -227,6 +227,10 @@ game_loop:
     	lw $t2, ADDR_KBRD
     	lw $t3, 0($t2)
     	beq $t3, 1, keyboard_input
+    	li $v0, 32
+	li $a0, 500
+	syscall
+    	j respond_to_S
     	b game_loop
 
 keyboard_input:
@@ -546,13 +550,37 @@ respond_to_S:
 	sw $s1, 8($sp)
 	sw $s0, 12($sp)
 	
+	addi $s0, $s0, 128
+	addi $s1, $s1, 128
+	addi $s2, $s2, 128
+	addi $s3, $s3, 128
+	
+	#Check collision 
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_bottom
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_bottom
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	lw $a0, 0($t0)
+	beq $a0, $t4, collide_bottom
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	lw $a0, 0($t0)
+	#beq $a0, $t1, collide_bottom
+	beq $a0, $t4, collide_bottom
+	
 	b game_loop
 	
 respond_to_D:
 	j redraw_block
 
 respond_to_Q:
-	li $v0, 10                      # Quit gracefully
+	li $v0, 10
 	syscall
 	
 redraw_block:
@@ -752,6 +780,55 @@ collide_left:
 	sw $s1, 8($sp)
 	sw $s0, 12($sp)
     	b game_loop
+
+collide_bottom:
+	addi $s0, $s0, -128
+	addi $s1, $s1, -128
+	addi $s2, $s2, -128
+	addi $s3, $s3, -128
+	
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $s4, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+	
+	#Save colours
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
+    	sw $s7, 16($sp)
+    	sw $s6, 20($sp)
+    	sw $s5, 24($sp)
+    	sw $s4, 28($sp)
+    	
+    	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+    	
+    	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	j spawn_block
 
 thing:
 	li $v0, 10                      # Quit gracefully
