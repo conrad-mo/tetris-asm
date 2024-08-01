@@ -178,13 +178,11 @@ spawn_block:
 
 bot_wall_gen_end:
     	lw $t0, ADDR_DSPL
-    	lw $t2, ADDR_KBRD
-    	lw $t2, 60($t0)
-    	#sw $t6, 0($t0)
-    	#beq $t2, $t6, collide
     	
     	
-    	addi $sp, $sp, -32
+    	addi $sp, $sp, -36
+    	add $t2, $zero, $zero
+    	sw $t2, 32($sp)
     	addi $t0, $t0, 60
     	lw $t2, 0($t0)
     	sw $t2, 16($sp)
@@ -244,8 +242,135 @@ keyboard_input:
     	b game_loop
 
 respond_to_W:
-	li $v0, 10                      # Quit gracefully
-	syscall
+	lw $s0, 0($sp)
+	lw $s1, 4($sp)
+	lw $s2, 8($sp)
+	lw $s3, 12($sp)
+	lw $s4, 16($sp)
+	lw $s5, 20($sp)
+	lw $s6, 24($sp)
+	lw $s7, 28($sp)
+	lw $a1, 32($sp)
+	addi $sp, $sp, 36
+	
+	#Erase shape
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $s4, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $s5, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $s6, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $s7, 0($t0)
+	
+	beq $a1, 0, rotate_x
+	beq $a1, 1, rotate_y
+	
+
+rotate_x:
+	addi $s1, $s2, -4
+	addi $s0, $s1, -4
+	add $s3, $s2, 4
+	
+	xor $a1, $a1, 1
+	
+	
+	#Save new colours
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
+	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+	
+	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	
+	#Save coordinates
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	b game_loop
+	
+rotate_y:
+	add $s3, $s2, -128
+	add $s1, $s2, 128
+	add $s0, $s1, 128
+	
+	xor $a1, $a1, 1
+	
+	#Save new colours
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
+	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
+	
+	#Redraw
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s3
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s2
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s1
+	sw $t1, 0($t0)
+	lw $t0, ADDR_DSPL
+	add $t0, $t0, $s0
+	sw $t1, 0($t0)
+	
+	#Save coordinates
+	sw $s3, 0($sp)
+	sw $s2, 4($sp)
+	sw $s1, 8($sp)
+	sw $s0, 12($sp)
+	
+	b game_loop
 
 respond_to_A:
 	lw $s0, 0($sp)
@@ -256,6 +381,7 @@ respond_to_A:
 	lw $s5, 20($sp)
 	lw $s6, 24($sp)
 	lw $s7, 28($sp)
+	lw $a1, 32($sp)
 	addi $sp, $sp, 32
 	
 	addi $s0, $s0, -4
@@ -289,7 +415,7 @@ respond_to_A:
 	#Erase shape
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s3
-	sw $t6, 0($t0)
+	sw $s4, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $s5, 0($t0)
@@ -306,7 +432,8 @@ respond_to_A:
 	addi $s3, $s3, -4
 	
 	#Save new colours
-	addi $sp, $sp, -32
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
 	lw $t0, ADDR_DSPL
     	add $t0, $t0, $s0
     	lw $t2, 0($t0)
@@ -356,12 +483,13 @@ respond_to_S:
 	lw $s5, 20($sp)
 	lw $s6, 24($sp)
 	lw $s7, 28($sp)
+	lw $a1, 32($sp)
 	addi $sp, $sp, 32
 	
 	#Erase shape
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s3
-	sw $t6, 0($t0)
+	sw $s4, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $s5, 0($t0)
@@ -378,7 +506,8 @@ respond_to_S:
 	addi $s3, $s3, 128
 	
 	#Save new colours
-	addi $sp, $sp, -32
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
 	lw $t0, ADDR_DSPL
     	add $t0, $t0, $s0
     	lw $t2, 0($t0)
@@ -435,6 +564,7 @@ redraw_block:
 	lw $s5, 20($sp)
 	lw $s6, 24($sp)
 	lw $s7, 28($sp)
+	lw $a1, 32($sp)
 	addi $sp, $sp, 32
 	
 	addi $s0, $s0, 4
@@ -468,7 +598,7 @@ redraw_block:
 	#Erase shape
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s3
-	sw $t6, 0($t0)
+	sw $s4, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $s5, 0($t0)
@@ -485,7 +615,8 @@ redraw_block:
 	addi $s3, $s3, 4
 	
 	#Save new colours
-	addi $sp, $sp, -32
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
 	lw $t0, ADDR_DSPL
     	add $t0, $t0, $s0
     	lw $t2, 0($t0)
@@ -535,7 +666,7 @@ collide_right:
 	#Erase shape
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s3
-	sw $t6, 0($t0)
+	sw $s4, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $s5, 0($t0)
@@ -545,6 +676,27 @@ collide_right:
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s0
 	sw $s7, 0($t0)
+	
+	#Save colours
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
+    	add $t0, $t0, $s0
+    	lw $t2, 0($t0)
+    	sw $t2, 16($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s1
+    	lw $t2, 0($t0)
+    	sw $t2, 20($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s2
+    	#beq $t2, $t5, thing
+    	lw $t2, 0($t0)
+    	sw $t2, 24($sp)
+    	lw $t0, ADDR_DSPL
+    	add $t0, $t0, $s3
+    	lw $t2, 0($t0)
+    	sw $t2, 28($sp)
+    	lw $t0, ADDR_DSPL
     	
     	#Redraw
 	lw $t0, ADDR_DSPL
@@ -575,7 +727,7 @@ collide_left:
 	#Erase shape
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s3
-	sw $t6, 0($t0)
+	sw $s4, 0($t0)
 	lw $t0, ADDR_DSPL
 	add $t0, $t0, $s2
 	sw $s5, 0($t0)
@@ -587,7 +739,8 @@ collide_left:
 	sw $s7, 0($t0)
 	
 	#Save colours
-	addi $sp, $sp, -32
+	addi $sp, $sp, -36
+	sw $a1, 32($sp)
     	add $t0, $t0, $s0
     	lw $t2, 0($t0)
     	sw $t2, 16($sp)
