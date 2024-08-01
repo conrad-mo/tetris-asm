@@ -680,23 +680,10 @@ collide_right:
 	#Save colours
 	addi $sp, $sp, -36
 	sw $a1, 32($sp)
-    	add $t0, $t0, $s0
-    	lw $t2, 0($t0)
-    	sw $t2, 16($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s1
-    	lw $t2, 0($t0)
-    	sw $t2, 20($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s2
-    	#beq $t2, $t5, thing
-    	lw $t2, 0($t0)
-    	sw $t2, 24($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s3
-    	lw $t2, 0($t0)
-    	sw $t2, 28($sp)
-    	lw $t0, ADDR_DSPL
+    	sw $s7, 16($sp)
+    	sw $s6, 20($sp)
+    	sw $s5, 24($sp)
+    	sw $s4, 28($sp)
     	
     	#Redraw
 	lw $t0, ADDR_DSPL
@@ -741,23 +728,10 @@ collide_left:
 	#Save colours
 	addi $sp, $sp, -36
 	sw $a1, 32($sp)
-    	add $t0, $t0, $s0
-    	lw $t2, 0($t0)
-    	sw $t2, 16($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s1
-    	lw $t2, 0($t0)
-    	sw $t2, 20($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s2
-    	#beq $t2, $t5, thing
-    	lw $t2, 0($t0)
-    	sw $t2, 24($sp)
-    	lw $t0, ADDR_DSPL
-    	add $t0, $t0, $s3
-    	lw $t2, 0($t0)
-    	sw $t2, 28($sp)
-    	lw $t0, ADDR_DSPL
+    	sw $s7, 16($sp)
+    	sw $s6, 20($sp)
+    	sw $s5, 24($sp)
+    	sw $s4, 28($sp)
     	
     	#Redraw
 	lw $t0, ADDR_DSPL
